@@ -582,7 +582,7 @@ def main() -> int:
     parser.add_argument(
         "--data",
         type=Path,
-        default=Path(__file__).resolve().parent / "emotion_sentimen_dataset.csv",
+        default=Path(__file__).resolve().parent / "Sentiment Projet",
         help="Chemin vers le CSV (colonnes text + Emotion par défaut)",
     )
     parser.add_argument("--text-col", default="text", help="Nom colonne texte")
