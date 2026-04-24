@@ -144,11 +144,13 @@ def preprocess_text(text: str) -> str:
 
 
 def load_emotion_csv(path: Path, max_rows: int | None, text_col: str, label_col: str) -> pd.DataFrame:
-    df = pd.read_csv(path, nrows=max_rows)
+    df = pd.read_csv(path, nrows=max_rows, header=None, encoding='latin-1')
     if text_col not in df.columns or label_col not in df.columns:
         raise ValueError(f"Colonnes attendues : {text_col!r}, {label_col!r}. Trouvé : {list(df.columns)}")
     df = df[[text_col, label_col]].dropna()
     df[label_col] = df[label_col].astype(str).str.strip().str.lower()
+    # Map sentiment140 labels: 4 -> positive, 0 -> negative
+    df[label_col] = df[label_col].map(lambda x: "positive" if x == "4" else "negative" if x == "0" else x)
     df[text_col] = df[text_col].astype(str).map(preprocess_text)
     return df
 
@@ -575,20 +577,20 @@ def main() -> int:
     parser.add_argument(
         "--mode",
         choices=("emotions", "sentiment", "binary", "emotion"),
-        default="emotions",
+        default="binary",
         help="emotions: prédire la colonne Emotion (recommandé pour ce CSV) | sentiment: positif/négatif "
         "depuis les émotions | binary: CSV déjà pos/neg | emotion: alias de sentiment (ancien nom)",
     )
     parser.add_argument(
         "--data",
         type=Path,
-        default=Path(__file__).resolve().parent / "Sentiment-Projet",
+        default=Path(__file__).resolve().parent / "training.1600000.processed.noemoticon.csv",
         help="Chemin vers le CSV (colonnes text + Emotion par défaut)",
     )
-    parser.add_argument("--text-col", default="text", help="Nom colonne texte")
+    parser.add_argument("--text-col", default=5, help="Nom colonne texte")
     parser.add_argument(
         "--label-col",
-        default="Emotion",
+        default=0,
         help="emotions/sentiment/emotion: colonne Emotion | binary: colonne pos/neg",
     )
     parser.add_argument(
